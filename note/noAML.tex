@@ -1,0 +1,283 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\newcommand{\Pmax}{\overline{P}}
+\newcommand{\Pmin}{\underline{P}}
+\newcommand{\pbar}{\overline{p}}
+
+\title{A New AML Era}
+\author{David L. Woodruff\\Graduate School of Management\\University of California, Davis}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+Algebraic modeling languages (AMLs) let a modeler state an
+optimization problem in something close to the indexed algebraic
+notation of a textbook. An AML serves as a translator to produce the data
+structures a solver needs.  This note asks the question: Why not let a
+large language model (LLM) go directly from the algebraic notation to
+an implementation in, say, the C programming language and ``cut out the
+middleman'' so to speak? We suggest a few answers to this question, but
+also demonstrate using Claude Code~\cite{claudecode} that it is a very
+reasonable question.
+
+
+\section{Literature Review Mainly Done by Claude Code}
+
+Early steps toward machine-readable symbolic statements of mathematical programs include Pugh's language for nonlinear programming~\cite{pugh1972} and the UIMP interface~\cite{ellison1982}, and Fourer made the systematic case for modeling languages over the matrix generators then in wide use~\cite{fourer1983}. GAMS, which began at the World Bank, is generally regarded as the first AML to see broad use~\cite{bisschop1982,meeraus1983,brooke1988,bussieck2004}, and AMPL followed~\cite{fourer1990,fourer2003,fourer2004}. AMPL was later extended toward combinatorial optimization and constraint programming~\cite{fourer1998,fourer2002}. Other long-lived systems include LINGO from LINDO Systems~\cite{cunningham2004}, AIMMS~\cite{bisschop2004}, LPL~\cite{hurlimann1988,hurlimann2004}, MPL from Maximal Software~\cite{kristjansson2004}, Mosel from the Xpress family of products~\cite{colombani2004}, and OPL, which brought together mathematical and constraint programming~\cite{vanhentenryck1999,vanhentenryck2004}, along with the MATLAB-based TOMLAB environment~\cite{holmstrom2004} and SAMPL, an extension for stochastic programming~\cite{valente2009}. Most of these systems are or became commercial products, but not all of the early languages did: CAMPS~\cite{lucas1988}, MODLER~\cite{greenberg1992modler}, the MINOPT language~\cite{schweiger2004}, and ASCEND~\cite{piela1991}, which was later released under the GPL. Another early system is PAM~\cite{welch1987}, and related conceptual work includes Geoffrion's structured modeling~\cite{geoffrion1987} and Bisschop and Kuip's treatment of compound and hierarchical sets~\cite{bisschop1993compound,bisschop1993hier}. Surveys and comparisons of this generation of systems are available in~\cite{greenberg1992comparison,kuip1993,rosenthal2001,kallrath2004intro,kallrath2012,fourer2013}.
+
+Open-source AMLs have since multiplied, and most of the recent ones are embedded in a general-purpose host language rather than defined as stand-alone languages. We limit this overview to open-source systems that have a citable publication (a paper, report, or thesis), so we omit tools documented mainly through a manual or repository, such as GNU MathProg, as well as tools that are free of charge but not distributed under an open-source license, such as YALMIP~\cite{lofberg2004,lofberg2012} and ROME~\cite{goh2011}. We also read ``AML'' broadly enough to include closely related modeling frameworks. Stand-alone languages include ZIMPL~\cite{koch2004,dorndorf2012}, CMPL~\cite{steglich2010}, the structure-conveying SML~\cite{colombo2009}, the graph-based GBOML~\cite{miftari2022}, and, for constraint programming, MiniZinc~\cite{nethercote2007} and Essence~\cite{frisch2008}. C++ hosts FlopC++~\cite{hultberg2007,wolf2011} and Gravity~\cite{hijazi2018}. In Python, Pyomo~\cite{hart2011,bynum2021} and its extensions for stochastic programming~\cite{watson2012,knueven2023}, differential-algebraic models~\cite{nicholson2018}, and generalized disjunctive programming~\cite{chen2022} sit alongside PuLP~\cite{mitchell2011}, PySCIPOpt~\cite{maher2016}, optlang~\cite{jensen2017}, GEKKO~\cite{beal2018}, PICOS~\cite{sagnol2022}, Linopy~\cite{hofmann2023}, RSOME~\cite{chen2020rsome,chen2023rsome}, and PyOptInterface~\cite{yang2024}. In Julia, JuMP~\cite{lubin2015,dunning2017,lubin2023} and its MathOptInterface layer~\cite{legat2022} anchor an ecosystem that includes SDDP.jl~\cite{dowson2021}, StochasticPrograms.jl~\cite{biel2022}, InfiniteOpt.jl~\cite{pulsipher2022}, Plasmo.jl~\cite{jalving2022}, and ExaModels.jl~\cite{shin2024}. A distinct line of work builds on disciplined convex programming~\cite{grant2006,grant2008}: CVX in MATLAB, CVXPY in Python~\cite{diamond2016,agrawal2018} with its DCCP~\cite{shen2016} and CVXPYgen~\cite{schaller2022} extensions, Convex.jl in Julia~\cite{udell2014}, and CVXR in R~\cite{fu2020}, where the ROI infrastructure~\cite{theussl2020} also provides a modeling interface. For dynamic optimization, CasADi~\cite{andersson2019} and Optimica with JModelica.org~\cite{akesson2010} provide symbolic and language-based alternatives.
+
+\section{The Experiment}
+
+Our test problem is the unit commitment model of Knueven, Ostrowski, and Watson~\cite{knueven2020}. Claude Code worked from the version of that paper posted on Optimization Online~\cite{knueven2018ool}, not from the journal version, and all equation numbers below refer to the Optimization Online version. A later check by Claude Code confirmed that the equations of formulation (T) carry the same numbers in the journal version. We use the ``Tight'' formulation, denoted (T), which those authors identify as the best performer among the formulations they tested. Appendix~\ref{app:formulation} reproduces it.
+
+We used Claude Code version 2.1.318 with the model Claude Opus 5.5 (\texttt{claude-opus-5-5}) in November 2026. The program was built with GCC 15.2.0 and CMake 4.2.3, linked against Gurobi 13.0.2, and run on Ubuntu 26.04.1. The comparison runs used version 0.6.2 of the open-source EGRET package~\cite{egret}, which implements (T), with Pyomo 6.9.5.dev0, gurobipy 12.0.2, and Python 3.12.16, and the instances came from pglib-uc~\cite{pglibuc} at commit \texttt{39a7f38}. All of the runs were done on an Acer Swift laptop (model SFX16-61G) with an AMD Ryzen 7 7840HS processor (8 cores, 16 threads) and about 14~GB of usable memory.
+
+\subsection{Creation of the C Code}
+\label{sec:creation}
+
+A Claude Code session received the Optimization Online PDF, seven pglib-uc instances spanning the three benchmark families, a description of the data format, and a prompt asking for (T) as a C program that passes the model to Gurobi through its C API, with no AML. The prompt supplied $C_{LP}$, $C_{RP}$, and $C^w$, which the data omit, and told the session to work only from the paper and the data. It ran in a sandbox containing no implementation of the model, with web tools denied by permission rules, and its log shows no use of another implementation.
+
+Claude Code wrote the program, including a JSON reader, and a CMake file, with no human intervention. It reached a first program that built and solved in about 13 minutes, before any testing, and finished in 57 minutes, which includes solving all seven instances, measuring the effect of its decisions, and writing up its results and notes.
+
+Working from the paper alone, Claude Code found that (T) cannot be implemented exactly as published, and it recorded each departure with its reason; Appendix~\ref{app:departures} lists them. Two of them matter numerically. Taken literally, the ranges in (4) and (5) are empty for generators whose minimum times exceed the horizon, which it measured as lowering the cost of one FERC instance by 12.7\%, and (67) as published raises the cost of one RTS-GMLC instance by 135\%. It flagged its change to (67) as the decision we might want to overrule, and we kept it.
+
+None of these troubles with (T) are in EGRET 0.6.2~\cite{egret}, as we checked afterward: EGRET has the corrected $K^{SU}(t)$, additional term in (41), and (48), includes $p_W(t)$ in (67), and caps minimum times at $T$ so that (4) and (5) are not empty.
+
+\subsection{Validation Using EGRET and Refinement}
+\label{sec:validation}
+
+We then compared the program with formulation (T) in EGRET. Six of the seven LP bounds agree to six decimal places, and on all seven instances the intervals from MIP bound to objective overlap, at a 0.01\% gap. A separate checker recomputed the cost of each solution and tested it against the operating constraints in the data. Any failed item would start a new session to refine the program, showing it these numbers but neither EGRET nor the checker.
+
+The checker raised one flag, a reserve shortfall of 0.000011~MW on one instance, and that started a refinement session of 37 minutes. The flag was a false alarm from the checker's tolerance of $10^{-5}$: solutions are written with six decimals, so rounding across the 978 generators of that instance can reach about $10^{-3}$. The session reached this conclusion and changed nothing in the model. We did not change the tolerance and repeat the check, so the recorded result still shows this flag.
+
+Using only the numbers, the same session traced the remaining LP difference, on one RTS-GMLC instance, to (35) at $t=1$. The session correctly concluded that the program follows the paper and that EGRET uses a weaker form of that row, one that gives a lower LP bound but has the same integer solutions. The session guessed that form slightly wrong: EGRET's code adds $\Pmin w(1)$ to the right-hand side, not the inferred $RU\, w(1)$. Both forms give EGRET's LP bound on that instance, and EGRET's form also matches on the other two RTS-GMLC instances, the only others tested.
+
+So no refinement of the model was needed. That does not make verification optional, for a translator of any kind. A person copying (4) and (5) into a conventional AML would get the same empty ranges and the same clean solve, and a comparison with EGRET would expose them. But comparing numbers also has limits. Equation (48) as published is invalid, as Claude Code found by reading it, yet the published and corrected forms coincide when $SU=SD$, and no generator with $UT=1$ in these seven instances has $SU \ne SD$. Solving all seven with the published form gave exactly the same LP bounds, MIP objectives, and MIP bounds, so no comparison on these instances could reveal the error. Verification can also fail in the other direction, as the false alarm shows.
+
+The checks here are also not fully independent. A separate Claude Code session, which had already read EGRET and seen the data, wrote the prompts, the data description, and the checker. The two checking tools that the translating session wrote for itself compile but have never been run, because the permissions we set blocked them.
+
+\section{Discussion \label{sec:discussion}}
+
+We aren't really cutting out the AML ``middleman'' tasks; we are
+decomposing them. The interpretation of the algebraic model is done by
+an LLM and the instantiation of the model in a solver is done by C
+code. It took the LLM about 13 minutes to read the entire paper and then
+produce the C program for one of the models in it.
+
+An AML and an LLM are not interchangeable translators, however. An AML
+translates the same way every time and leaves behind a readable model
+that can be maintained and passed to other solvers, whereas the LLM
+left us more than a thousand lines of C tied to one solver's API (on the
+other hand, having the LLM rewrite for a new solver is easy). The
+LLM also did more than translate: working from the paper alone, it
+found five problems in the published formulation and resolved them
+with its own judgment, including a change to (67) that moves the cost
+of one instance by 135\%. That ability is useful, but it is also why
+the result needs independent verification, and any regenerated program
+would need checking again. 
+
+One can imagine workflows where models are developed using algebraic
+notation which is given to an LLM so that it can produce a compiled
+program for use in production. Changes to the model would follow a
+similar workflow. But one can also imagine workflows where models are
+developed in an AML and the LLM can then produce a compiled program
+for use in production. It would seem to be mainly a matter of
+preference by the modeler.  One can imagine a preference
+for an AML embedded in a programming language when the model
+specification itself includes procedural definitions in addition to
+algebraic notation. However, an LLM can also process procedural definitions
+expressed in a variety of ways.
+
+At the time of this writing, the use of LLMs in optimization model
+development is still evolving. Certainly, LLMs are very good at
+translating models from one format to another, freeing modelers to
+express their models however they like and rely on an LLM to translate
+them fairly quickly.
+
+\section*{Code and Data Availability}
+
+The program, the prompts, the experiment scripts, the instances, and the records of the sessions, with the paper's content removed from those records, are available at \url{https://github.com/DLWoodruff/new-aml-era}.
+
+\section*{Acknowledgement}
+
+Claude Code drafted much of the text of this note, including the literature review, and wrote the program and the checks. The author directed the work, edited the text, and is responsible for the final content.
+
+\appendix
+
+\section{The Tight Formulation of Knueven, Ostrowski, and Watson}
+\label{app:formulation}
+
+Apart from a few linking remarks, everything in Sections~\ref{app:notation} and~\ref{app:equations}, including the notation and the equation numbers, is due to Knueven, Ostrowski, and Watson and is reproduced from Table~3 and Section~3 of the Optimization Online version of their paper~\cite{knueven2018ool} (published as~\cite{knueven2020}). They assembled (T) from their own components and from components of earlier authors, whom they credit in their paper. Claude Code transcribed the equations from the source PDF, and any transcription errors are not the authors'. All equations appear as published, including those the program implements differently; remarks on the implementation are confined to Appendix~\ref{app:departures}.
+
+\subsection{Notation}
+\label{app:notation}
+
+As in the source, the generator subscript $g$ is dropped where it is clear, constraints hold for each $g \in \mathcal{G}$ and $t \in \mathcal{T} = \{1,\dots,T\}$ unless stated otherwise, $v(t)$ and $w(t)$ for $t<1$ come from historical data, and $v(t)$ and $w(t)$ for $t>T$ are $0$.
+
+\paragraph{Parameters.}
+$\Pmin$, $\Pmax$: minimum and maximum power output.
+$\Pmax^{\,l}$: maximum power available for piecewise segment $l \in \mathcal{L}$, with $\Pmax^{\,0}=\Pmin$.
+$RU$, $RD$, $SU$, $SD$: ramp-up, ramp-down, start-up, and shut-down rates.
+$UT$, $DT$: minimum up time and down time.
+$U$, $D$: hours the generator must be on or off at $t=1$.
+$C^l$: cost coefficient of segment $l$.
+$C^R$: cost of running at $\Pmin$.
+$C^s$: start-up cost in category $s \in \mathcal{S}=\{1,\dots,S\}$, from hottest to coldest.
+$\underline{T}^s$: time offline after which category $s$ is used, with $\underline{T}^1 = DT$ and $\underline{T}^S = TC$.
+$C^w$: shut-down cost.
+$C_{LP}$, $C_{RP}$: penalties on load mismatch and reserve shortfall.
+$D_n(t)$: load at bus $n$.
+$R(t)$: spinning reserve requirement.
+$\underline{W}_n(t)$, $\overline{W}_n(t)$: must-take and available renewable generation at bus $n$.
+$B_k$, $F_k$: susceptance and capacity of branch $k$, which runs from bus $k(n)$ to bus $k(m)$.
+
+\paragraph{Variables.}
+$u(t), v(t), w(t) \in \{0,1\}$: on, start-up, and shut-down status.
+$p'(t) \ge 0$: power above minimum, with $p(t) = p'(t) + \Pmin u(t)$ \eqref{eq:12}.
+$\pbar'(t) \ge 0$: maximum power available above minimum, with $\pbar(t) = \pbar'(t) + \Pmin u(t)$ \eqref{eq:13}.
+$p^l(t) \ge 0$: power from segment $l$.
+$c^p(t), c^{SU}(t), c^{SD}(t)$: production cost above $\Pmin$, start-up cost, and shut-down cost.
+$x(t,t') \in \{0,1\}$: shut-down at $t$ and start-up at $t'$, for $t'-TC < t \le t'-DT$.
+$p_{W,n}(t) \ge 0$: renewable generation used at bus $n$.
+$f_k(t)$: flow on branch $k$.
+$\theta_n(t)$: voltage angle at bus $n$.
+$s_n(t)$, $s_n^+(t), s_n^-(t) \ge 0$: load mismatch and its positive and negative parts.
+$s_R(t) \ge 0$: reserve shortfall.
+
+\paragraph{Derived quantities.}
+\[
+T^{RU} = \left\lfloor \frac{\Pmax - SU}{RU} \right\rfloor, \qquad
+T^{RD} = \left\lfloor \frac{\Pmax - SD}{RD} \right\rfloor, \qquad
+K^{SD}(t) = \min\{T^{RD},\, UT-1,\, T-t-1\},
+\]
+\[
+K^{SU}(t) = \min\{T^{RU},\, UT-2-[K^{SU}(t)]^+,\, t-1\}, \qquad [\,\cdot\,]^+ := \max\{\cdot,0\}.
+\]
+\[
+C^v(l) := \begin{cases}
+0 & \Pmax^{\,l} \le SU \\
+\Pmax^{\,l} - SU & \Pmax^{\,l-1} < SU < \Pmax^{\,l} \\
+\Pmax^{\,l} - \Pmax^{\,l-1} & \Pmax^{\,l-1} \ge SU
+\end{cases}
+\qquad
+C^w(l) := \begin{cases}
+0 & \Pmax^{\,l} \le SD \\
+\Pmax^{\,l} - SD & \Pmax^{\,l-1} < SD < \Pmax^{\,l} \\
+\Pmax^{\,l} - \Pmax^{\,l-1} & \Pmax^{\,l-1} \ge SD
+\end{cases}
+\]
+
+\subsection{The formulation}
+\label{app:equations}
+
+\paragraph{Objective.}
+\begin{equation}
+\min \sum_{t \in \mathcal{T}} \left( \sum_{g \in \mathcal{G}} \left( c^p_g(t) + C^R_g u_g(t) + c^{SU}_g(t) + c^{SD}_g(t) \right) + \sum_{n \in \mathcal{N}} C_{LP} \left( s_n^+(t) + s_n^-(t) \right) + C_{RP}\, s_R(t) \right). \tag{69}
+\end{equation}
+The cost variables defined by equalities below are substituted directly into (69).
+
+\paragraph{Linking relations.}
+\begin{align}
+p(t) &= p'(t) + \Pmin u(t) \tag{12}\label{eq:12} \\
+\pbar(t) &= \pbar'(t) + \Pmin u(t) \tag{13}\label{eq:13}
+\end{align}
+
+\paragraph{Up-time and down-time.}
+\begin{align}
+u(t) - u(t-1) &= v(t) - w(t) && t \in \mathcal{T} \tag{2} \\
+\sum_{i=1}^{\min\{U,T\}} u(i) &= \min\{U,T\} \tag{3a} \\
+\sum_{i=1}^{\min\{D,T\}} u(i) &= 0 \tag{3b} \\
+\sum_{i=t-UT+1}^{t} v(i) &\le u(t) && t \in \{UT,\dots,T\} \tag{4} \\
+\sum_{i=t-DT+1}^{t} w(i) &\le 1-u(t) && t \in \{DT,\dots,T\} \tag{5}
+\end{align}
+
+\paragraph{Generation limits.}
+Constraint (17) holds for all generators, and (23) holds for generators with $UT=1$:
+\begin{align}
+p'(t) &\le \pbar'(t) \tag{17} \\
+\pbar'(t) &\le (\Pmax-\Pmin)u(t) - (\Pmax-SU)v(t) - [SU-SD]^+ w(t+1) \tag{23a} \\
+\pbar'(t) &\le (\Pmax-\Pmin)u(t) - (\Pmax-SD)w(t+1) - [SD-SU]^+ v(t) \tag{23b}
+\end{align}
+The source states (23) with $p'(t)+r(t)$ on the left, which equals $\pbar'(t)$ by its equation (14). The variable upper bounds are (38), then (40) if $T^{RU} > UT-2$, and (41) if $K^{SD}(t)>0$:
+\begin{align}
+\pbar(t) &\le \Pmax u(t) - (\Pmax-SD)w(t+1) - \sum_{i=0}^{\min\{UT-2,\,T^{RU}\}} (\Pmax-SU-iRU)\, v(t-i) \tag{38} \\
+\pbar(t) &\le \Pmax u(t) - \sum_{i=0}^{\min\{UT-1,\,T^{RU}\}} (\Pmax-SU-iRU)\, v(t-i) \tag{40} \\
+p(t) &\le \Pmax u(t) - \sum_{i=0}^{K^{SD}(t)} (\Pmax-(SD+iRD))\, w(t+1+i) - \sum_{i=0}^{K^{SU}(t)} (\Pmax-(SU+iRU))\, v(t-i) \tag{41}
+\end{align}
+If $K^{SU}(t) < T^{RU}$, the term $-[(SU+(K^{SU}(t)+1)RU) - (SD+T^{RD}RD)]^+\, v(t-(K^{SU}(t)+1))$ is added to the right-hand side of (41).
+
+\paragraph{Ramp limits.}
+\begin{align}
+\pbar'(t) - p'(t-1) &\le (SU-\Pmin-RU)v(t) + RU\, u(t) \tag{35} \\
+p'(t-1) - p'(t) &\le (SD-\Pmin-RD)w(t) + RD\, u(t-1) \tag{36}
+\end{align}
+
+\paragraph{Piecewise production.}
+Constraints (43) and (44) hold for all generators, (46) holds if $UT>1$, and (48) holds otherwise:
+\begin{align}
+\sum_{l \in \mathcal{L}} p^l(t) &= p'(t) \tag{43} \\
+\sum_{l \in \mathcal{L}} C^l p^l(t) &= c^p(t) \tag{44} \\
+p^l(t) &\le (\Pmax^{\,l}-\Pmax^{\,l-1})u(t) - C^v(l)v(t) - C^w(l)w(t+1) && l \in \mathcal{L} \tag{46} \\
+p^l(t) &\le (\Pmax^{\,l}-\Pmax^{\,l-1})u(t) - C^v(l)v(t) - [C^v(l)-C^w(l)]^+ w(t+1) && l \in \mathcal{L} \tag{48a} \\
+p^l(t) &\le (\Pmax^{\,l}-\Pmax^{\,l-1})u(t) - C^w(l)w(t+1) - [C^w(l)-C^v(l)]^+ v(t) && l \in \mathcal{L} \tag{48b}
+\end{align}
+
+\paragraph{Start-up and shut-down cost.}
+\begin{align}
+\sum_{t'=t-TC+1}^{t-DT} x(t',t) &\le v(t) \tag{59} \\
+\sum_{t'=t+DT}^{t+TC-1} x(t,t') &\le w(t) \tag{60} \\
+c^{SU}(t) &= C^S v(t) - \sum_{s=1}^{S-1} (C^S-C^s) \left( \sum_{t'=t-\underline{T}^{s+1}+1}^{t-\underline{T}^{s}} x(t',t) \right) \tag{61} \\
+c^{SD}(t) &= C^w w(t) \tag{62}
+\end{align}
+
+\paragraph{System constraints.}
+\begin{align}
+\underline{W}_n(t) \le p_{W,n}(t) &\le \overline{W}_n(t) && \forall t \in \mathcal{T},\ \forall n \in \mathcal{N} \tag{63} \\
+f_k(t) &= B_k \left( \theta_{k(n)}(t) - \theta_{k(m)}(t) \right) && \forall k \in \mathcal{K},\ \forall t \in \mathcal{T} \tag{64a} \\
+-F_k \le f_k(t) &\le F_k && \forall k \in \mathcal{K},\ \forall t \in \mathcal{T} \tag{64b} \\
+-\pi \le \theta_n(t) &\le \pi && \forall n \in \mathcal{N},\ \forall t \in \mathcal{T} \tag{64c} \\
+\theta_1(t) &= 0 && \forall t \in \mathcal{T} \tag{64d}
+\end{align}
+\begin{equation}
+\sum_{g \in \mathcal{G}_n} p_g(t) + p_{W,n}(t) + \sum_{k \in \delta^+(n)} f_k(t) - \sum_{k \in \delta^-(n)} f_k(t) + s_n(t) = D_n(t) \qquad \forall n \in \mathcal{N},\ \forall t \in \mathcal{T} \tag{65}
+\end{equation}
+\begin{align}
+s_n(t) &= s_n^+(t) - s_n^-(t) && \forall n \in \mathcal{N},\ \forall t \in \mathcal{T} \tag{66a} \\
+s_n^+(t),\ s_n^-(t) &\ge 0 && \forall n \in \mathcal{N},\ \forall t \in \mathcal{T} \tag{66b} \\
+\sum_{g \in \mathcal{G}} \pbar_g(t) + s_R(t) &\ge \sum_{n \in \mathcal{N}} D_n(t) + R(t) && \forall t \in \mathcal{T} \tag{67}
+\end{align}
+Here $\delta^+(n)$ and $\delta^-(n)$ are the lines to and from bus $n$. With only one bus, the authors drop (64), and the flow sums in (65) are empty, which leaves a system-wide demand constraint.
+
+\section{Where the Program Departs from the Published Formulation}
+\label{app:departures}
+
+Claude Code identified and implemented these departures without seeing EGRET, as Section~\ref{sec:creation} describes, and we compared them with EGRET 0.6.2~\cite{egret} only afterward. The first five items correct the published formulation. The published forms appear the same way in the journal version~\cite{knueven2020}, so ``published'' below refers to both versions, and EGRET 0.6.2 is correct on all five. The additional term in (41) was corrected in EGRET in a 2023 change first included in release 0.6.0, whereas $K^{SU}(t)$ and (67) have had the forms described here since EGRET's first public commit in April 2019.
+
+\begin{itemize}
+\item \textbf{The definition of $K^{SU}(t)$.} As published, this definition refers to itself. The program uses $K^{SU}(t) = \min\{T^{RU},\, UT-2-[K^{SD}(t)]^+,\, t-1\}$, which is what EGRET computes.
+\item \textbf{The additional term in (41).} The program uses $-[(SD+K^{SD}(t)RD) - (SU+(K^{SU}(t)+1)RU)]^+$ as the coefficient of $v(t-(K^{SU}(t)+1))$, with the same difference and sign as current EGRET. It adds the term whenever $K^{SU}(t) < T^{RU}$, as the source says, whereas EGRET adds it in fewer cases. The published coefficient can cut off feasible points. For example, take $\Pmin=0$, $\Pmax=100$, $SU=59$, $RU=20$, $SD=10$, $RD=20$, and $UT=7$, so that $T^{RU}=2$, $T^{RD}=4$, $K^{SD}(t)=4$, and $K^{SU}(t)=1$ away from the ends of the horizon. A generator that starts at $t-2$ and stays on may produce $99$ at $t$, but the published term gives $p(t) \le 91$. The corrected term left the LP bound unchanged on the three instances where this was measured.
+\item \textbf{Equation (48).} The operands of $[\cdot]^+$ are reversed as published, and the program uses $[C^w(l)-C^v(l)]^+$ in (48a) and $[C^v(l)-C^w(l)]^+$ in (48b), as EGRET does. The published form is invalid. With $\Pmin=10$, breakpoints $10, 30, 50$, $SU=20$, $SD=40$, and $UT=1$, published (48a) gives $p^2(t) \le -10$ for a one-period run, which is feasible. The two forms coincide when $SU=SD$.
+\item \textbf{Reserves.} The program adds $p_W(t)$ to the left-hand side of (67), as EGRET does. The reserve requirement in the source's (68) is equivalent to the version with this term when load is met exactly, using (65) and $r(t)=\pbar(t)-p(t)$, whereas (67) as published in effect requires thermal generators to cover the renewable output as well.
+\item \textbf{Long minimum times.} Some instances have $UT$ or $DT$ greater than $T$, in which case the ranges in (4) and (5) are empty and the minimum time would not be enforced. The program uses the ranges $\{\min\{UT,T\},\dots,T\}$ and $\{\min\{DT,T\},\dots,T\}$, with the sums clipped to the horizon. EGRET also caps these minimum times at $T$.
+\item \textbf{Network.} The pglib-uc instances have no network, so the program uses the one-bus case of Knueven, Ostrowski, and Watson and a single aggregate renewable variable per period.
+\item \textbf{History.} The program takes $v(1-\mathit{time\_up\_t0})=1$ for a generator on at time $0$ and $w(1-\mathit{time\_down\_t0})=1$ for one that is off, and sets other historical values to $0$. For a generator that is off at time $0$, the only arcs $x(t',t)$ with $t'<1$ are those from that shut-down.
+\item \textbf{Data handling.} The program clips $SU$ and $SD$ at $\Pmax$, because most generators in the CAISO instances have limits above it, and it sets $u(t)=1$ for generators flagged \texttt{must\_run} in the data. The pglib-uc files carry no penalties or shut-down costs, so as the prompt specified it uses $C_{LP}=10000$, $C_{RP}=1000$, and $C^w=0$.
+\end{itemize}
+
+The program follows the published (35) at $t=1$, which differs from EGRET. EGRET's right-hand side is larger by $\Pmin w(1)$, which accounts for the one LP difference in Section~\ref{sec:validation}. Both forms are valid and have the same integer solutions, and the published one is tighter.
+
+\bibliographystyle{plain}
+\bibliography{noAML}
+
+\end{document}

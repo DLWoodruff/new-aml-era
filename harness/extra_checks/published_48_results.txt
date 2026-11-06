@@ -1,0 +1,36 @@
+== ca_2014-09-01_reserves_3
+LP objective=48399.526919
+objective=48409.123688
+bound=48404.470950
+status=OPTIMAL
+== ca_Scenario400_reserves_1
+LP objective=33585.584391
+objective=33590.742186
+bound=33587.387286
+status=OPTIMAL
+== ferc_2015-01-01_hw
+LP objective=41480391.463026
+objective=41483157.102869
+bound=41482399.553225
+status=OPTIMAL
+== ferc_2015-04-01_lw
+LP objective=56994290.752337
+objective=57001082.949048
+bound=56999603.005677
+status=OPTIMAL
+== rts_gmlc_2020-01-27
+LP objective=1226645.339956
+objective=1230475.366858
+bound=1230407.984483
+status=OPTIMAL
+== rts_gmlc_2020-07-06
+LP objective=3722397.471090
+objective=3729194.920899
+bound=3728825.770989
+status=OPTIMAL
+== rts_gmlc_2020-12-23
+LP objective=2697031.224634
+objective=2707509.117416
+bound=2707260.274187
+status=OPTIMAL
+

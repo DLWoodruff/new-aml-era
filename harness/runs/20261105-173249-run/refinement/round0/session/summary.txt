@@ -1,0 +1,18 @@
+events: 2000
+event_stream_minutes: 36.69
+subtype: success
+is_error: False
+num_turns: 16
+duration_ms: 192479
+duration_api_ms: 1502675
+total_cost_usd: 9.4522596
+model_usage: {"claude-opus-5-5": {"inputTokens": 132, "outputTokens": 163050, "cacheReadInputTokens": 16344858, "cacheCreationInputTokens": 365220, "webSearchRequests": 0, "costUSD": 9.4522596, "contextWindow": 1000000, "maxOutputTokens": 128000, "thinkingTokens": 96815, "cacheCreationEphemeral5mInputTokens": 0, "cacheCreationEphemeral1hInputTokens": 365220, "canonicalModel": "claude-opus-5-5", "provider": "firstParty", "costBasis": "list"}}
+permission_denials: 0
+tool_calls: {"Bash": 123, "Edit": 99, "Glob": 1, "Grep": 13, "Read": 19, "ToolSearch": 1}
+tool_errors: 5
+milestone: first completed solve at 2.8 min
+milestone: first successful build at 5.8 min
+translation_minutes (start to last edit of the source code): 28.6
+isolation_audit: 2 tool calls to review
+       3.9 min  Grep: {"pattern": "\"time_up_minimum\": 1\\b|\"ramp_startup_limit\": [0-9.]+|\"ramp_shutdown_limit\": [0-9.]+", "path": "/home/dlw/.claude/projects/-home-dl
+       4.5 min  Read: /home/dlw/.claude/projects/-home-dlw-Documents-Research-uc-rerun-work/3d357532-4da8-4637-bfe4-6db835bbd91d/tool-results/toolu_01RKJaS6bmZCsxiqLrK9XhND

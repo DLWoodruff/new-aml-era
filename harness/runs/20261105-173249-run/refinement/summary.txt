@@ -1,0 +1,4 @@
+stopped: no progress in round 1
+round0: 1 items failing, largest objective difference 0.000000%, verification 4.6 min, session 36.7 min
+round1: 1 items failing, largest objective difference 0.000000%, verification 4.6 min
+total_refinement_session_minutes: 36.71

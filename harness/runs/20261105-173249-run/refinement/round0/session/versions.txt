@@ -1,0 +1,8 @@
+2.1.318 (Claude Code)
+gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+cmake version 4.2.3
+#define GRB_VERSION_MAJOR     13
+#define GRB_VERSION_MINOR     0
+#define GRB_VERSION_TECHNICAL 2
+PRETTY_NAME="Ubuntu 26.04.1 LTS"
+model=claude-opus-5-5 effort=high

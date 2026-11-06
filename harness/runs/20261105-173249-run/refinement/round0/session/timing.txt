@@ -1,0 +1,3 @@
+wall_clock_seconds=2202.4
+wall_clock_minutes=36.71
+exit_status=0

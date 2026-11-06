@@ -1,0 +1,15 @@
+--- a/program/src/model.c
++++ b/program/src/model.c
+@@ -235,8 +235,10 @@
+         row_begin(b);
+         row_add(b, x->pa[t], 1.0);
+         if (t == 1 && first_ramp_u0) {
+-            row_add(b, x->v[t], -(g->su - g->pmin));
+-            row_end(b, GRB_LESS_EQUAL, pp0 + g->ru * g->on0);
++            row_add(b, x->v[t], -(g->su - g->pmin - g->ru));
++            row_add(b, x->u[t], -g->ru);
++            row_add(b, x->w[t], -g->pmin);
++            row_end(b, GRB_LESS_EQUAL, pp0);
+         } else {
+             if (t > 1) row_add(b, x->pp[t - 1], -1.0);
+             row_add(b, x->v[t], -(g->su - g->pmin - g->ru));

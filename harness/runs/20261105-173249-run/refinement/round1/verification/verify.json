@@ -1,0 +1,67 @@
+{
+ "failures": [
+  "ferc_2015-04-01_lw:violation:reserve"
+ ],
+ "largest_gap": 0.0,
+ "rows": [
+  {
+   "instance": "ca_2014-09-01_reserves_3",
+   "lp": 48399.526919,
+   "objective": 48409.123688,
+   "bound": 48404.47095,
+   "violations": [],
+   "agrees": true
+  },
+  {
+   "instance": "ca_Scenario400_reserves_1",
+   "lp": 33585.584391,
+   "objective": 33590.742186,
+   "bound": 33587.387286,
+   "violations": [],
+   "agrees": true
+  },
+  {
+   "instance": "ferc_2015-01-01_hw",
+   "lp": 41480391.463026,
+   "objective": 41483157.102869,
+   "bound": 41482399.553225,
+   "violations": [],
+   "agrees": true
+  },
+  {
+   "instance": "ferc_2015-04-01_lw",
+   "lp": 56994290.752337,
+   "objective": 57001082.949048,
+   "bound": 56999603.005677,
+   "violations": [
+    "reserve: 1 times, worst excess 0.000011"
+   ],
+   "agrees": true
+  },
+  {
+   "instance": "rts_gmlc_2020-01-27",
+   "lp": 1226645.339956,
+   "objective": 1230475.366858,
+   "bound": 1230407.984483,
+   "violations": [],
+   "agrees": true
+  },
+  {
+   "instance": "rts_gmlc_2020-07-06",
+   "lp": 3722397.47109,
+   "objective": 3729194.920899,
+   "bound": 3728825.770989,
+   "violations": [],
+   "agrees": true
+  },
+  {
+   "instance": "rts_gmlc_2020-12-23",
+   "lp": 2697031.224634,
+   "objective": 2707509.117416,
+   "bound": 2707260.274187,
+   "violations": [],
+   "agrees": true
+  }
+ ],
+ "seconds": 274.77601742744446
+}
