@@ -13,12 +13,16 @@
 \newcommand{\pbar}{\overline{p}}
 
 \title{A New AML Era}
-\author{David L. Woodruff\\Graduate School of Management\\University of California, Davis}
+\author{David L. Woodruff\\Graduate School of Management\\University of California, Davis\\\texttt{DLWoodruff@UCDavis.edu}}
 \date{}
 
 \begin{document}
 
 \maketitle
+
+\begin{abstract}
+Claude Code translated a published unit commitment formulation directly into a C program that calls Gurobi, with no algebraic modeling language in between. On the pglib-uc instances the program agrees with the authors' reference implementation, except where the program follows the paper more closely, and Claude Code found an error in one of the published equations. Independent verification is still needed, and we discuss its limits.
+\end{abstract}
 
 Algebraic modeling languages (AMLs) let a modeler state an
 optimization problem in something close to the indexed algebraic
