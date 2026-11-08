@@ -16,7 +16,7 @@ directed the work, edited the text, and is responsible for the final content.
 - `data/`: the seven pglib-uc instances (CC BY 4.0; see `data/README.md`).
 - `harness/`: the prompts, the isolation and timing scripts, the checker, and EGRET's cached
   answers. `harness/README.md` describes the procedure.
-- `harness/extra_checks/`: two checks cited in the note that were run by hand afterward.
+- `harness/extra_checks/`: three checks cited in the note that were run by hand afterward.
 - `harness/runs/20261105-173249-run/`: the records of the experiment reported in the note, with
   `creation/` for the session that wrote the program and `refinement/` for the verification rounds
   and the one refinement session.

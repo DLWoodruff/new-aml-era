@@ -1,9 +1,9 @@
 # LP relaxations of all of pglib-uc
 
-Work in progress, not yet in the note. The program in `../../../program` was run unchanged on
-the LP relaxation of all 56 pglib-uc instances (commit 39a7f38), and compared with EGRET 0.6.2
-with pull request https://github.com/grid-parity-exchange/Egret/pull/342 applied (commit
-`d684afd`). Gurobi 13.0.2 for the program, gurobipy 12.0.2 for EGRET. Times are not reported.
+Section 2.3 of the note. The program in `../../../program` was run unchanged on the LP
+relaxation of all 56 pglib-uc instances (commit 39a7f38), and compared with EGRET 0.6.2 with
+pull request https://github.com/grid-parity-exchange/Egret/pull/342 applied (commit `d684afd`).
+The pull request was merged into EGRET's main branch as `c2a3c63`, whose tree is identical. Gurobi 13.0.2 for the program, gurobipy 12.0.2 for EGRET. Times are not reported.
 
 ## Results
 
@@ -19,8 +19,8 @@ with pull request https://github.com/grid-parity-exchange/Egret/pull/342 applied
 
 ## How to repeat
 
-With pglib-uc checked out at 39a7f38 in `PGLIB`, the program built as `UC_SOLVE`, and EGRET from
-the pull request on `PYTHONPATH` (do not use `python -I`, which ignores `PYTHONPATH`):
+With pglib-uc checked out at 39a7f38 in `PGLIB`, the program built as `UC_SOLVE`, and EGRET at
+`c2a3c63` or later on `PYTHONPATH` (do not use `python -I`, which ignores `PYTHONPATH`):
 
     python run_lps.py program PGLIB UC_SOLVE ../../validate_egret.py program_lp.jsonl
     python run_lps.py egret   PGLIB UC_SOLVE ../../validate_egret.py egret_lp.jsonl

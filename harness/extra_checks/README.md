@@ -1,4 +1,4 @@
-# Two checks cited in the note
+# Three checks cited in the note
 
 These were run by hand after the experiment, using `program/`, outside any Claude Code session
 that wrote the program.
@@ -19,3 +19,6 @@ the paper's by `P_min w(1)`. Solved with `--relax` on the three RTS-GMLC instanc
 | `rts_gmlc_2020-07-06` | 3722397.471090 |
 
 All three equal EGRET's values in `harness/egret_reference.json`.
+
+**All of pglib-uc.** `all_pglib_lp/` holds the LP relaxations of all 56 pglib-uc instances, solved
+by the program unchanged and by EGRET, and some MIPs; see its README.
