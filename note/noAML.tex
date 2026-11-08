@@ -21,7 +21,14 @@
 \maketitle
 
 \begin{abstract}
-Claude Code translated a published unit commitment formulation directly into a C program that calls Gurobi, with no algebraic modeling language in between. On the pglib-uc instances the program agrees with the authors' reference implementation, except where the program follows the paper more closely, and Claude Code found an error in one of the published equations. Independent verification is still needed, and we discuss its limits.
+Algebraic modeling languages (AMLs) let a modeler state an
+optimization problem in something close to the indexed algebraic
+notation of a textbook. An AML serves as a translator to produce the data
+structures a solver needs.  This note asks the question: Why not let a
+large language model (LLM) go directly from the algebraic notation to
+an implementation in, say, the C programming language and ``cut out the
+middleman'' so to speak?
+Claude Code translated a published unit commitment formulation directly into a C program that calls Gurobi, with no AML in between. On the pglib-uc instances the program generally agrees with the open-source EGRET package, which implements the same formulation.
 \end{abstract}
 
 Algebraic modeling languages (AMLs) let a modeler state an
@@ -45,7 +52,7 @@ Open-source AMLs have since multiplied, and most of the recent ones are embedded
 
 Our test problem is the unit commitment model of Knueven, Ostrowski, and Watson~\cite{knueven2020}. Claude Code worked from the version of that paper posted on Optimization Online~\cite{knueven2018ool}, not from the journal version, and all equation numbers below refer to the Optimization Online version. A later check by Claude Code confirmed that the equations of formulation (T) carry the same numbers in the journal version. We use the ``Tight'' formulation, denoted (T), which those authors identify as the best performer among the formulations they tested. Appendix~\ref{app:formulation} reproduces it.
 
-We used Claude Code version 2.1.318 with the model Claude Opus 5.5 (\texttt{claude-opus-5-5}) in November 2026. The program was built with GCC 15.2.0 and CMake 4.2.3, linked against Gurobi 13.0.2, and run on Ubuntu 26.04.1. The comparison runs used version 0.6.2 of the open-source EGRET package~\cite{egret}, which implements (T), with Pyomo 6.9.5.dev0, gurobipy 12.0.2, and Python 3.12.16, and the instances came from pglib-uc~\cite{pglibuc} at commit \texttt{39a7f38}. All of the runs were done on an Acer Swift laptop (model SFX16-61G) with an AMD Ryzen 7 7840HS processor (8 cores, 16 threads) and about 14~GB of usable memory.
+We used Claude Code version 2.1.318 with the model Claude Opus 5.5 (\texttt{claude-opus-5-5}) in November 2026. The program was built with GCC 15.2.0 and CMake 4.2.3, linked against Gurobi 13.0.2, and run on Ubuntu 26.04.1. The comparison runs used version 0.6.2 of the open-source EGRET package~\cite{egret}, which implements (T), with Pyomo 6.9.5.dev0, gurobipy 12.0.2, and Python 3.12.16, and the instances came from pglib-uc~\cite{pglibuc} at commit \texttt{39a7f38}. Section~\ref{sec:allpglib} also used a later EGRET commit. All of the runs were done on an Acer Swift laptop (model SFX16-61G) with an AMD Ryzen 7 7840HS processor (8 cores, 16 threads) and about 14~GB of usable memory.
 
 \subsection{Creation of the C Code}
 \label{sec:creation}
@@ -286,7 +293,7 @@ Claude Code identified and implemented these departures without seeing EGRET, as
 \item \textbf{Data handling.} The program clips $SU$ and $SD$ at $\Pmax$, because most generators in the CAISO instances have limits above it, and it sets $u(t)=1$ for generators flagged \texttt{must\_run} in the data. The pglib-uc files carry no penalties or shut-down costs, so as the prompt specified it uses $C_{LP}=10000$, $C_{RP}=1000$, and $C^w=0$.
 \end{itemize}
 
-The program follows the published (35) at $t=1$, which differs from EGRET. EGRET's right-hand side is larger by $\Pmin w(1)$, which accounts for the one LP difference in Section~\ref{sec:validation}. Both forms are valid and have the same integer solutions, and the published one is tighter.
+The program follows the published (35) at $t=1$, which differs from EGRET. EGRET's right-hand side is larger by $\Pmin w(1)$, which accounts for the one LP difference in Section~\ref{sec:validation} and the 13 in Section~\ref{sec:allpglib}. Both forms are valid and have the same integer solutions, and the published one is tighter.
 
 \bibliographystyle{plain}
 \bibliography{noAML}

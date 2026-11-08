@@ -1,6 +1,6 @@
 """Solve a pglib-uc instance with EGRET's formulation T, as a check on uc_tight.
 
-EGRET is the authors' reference implementation. Usage:
+EGRET is an open-source package that implements formulation (T). Usage:
 
     python validate_egret.py instance.json [--relax] [--mip-gap GAP] [--time-limit S]
 
